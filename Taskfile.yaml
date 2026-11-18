@@ -1,0 +1,34 @@
+version: "3"
+
+env:
+  SOPS_AGE_KEY_FILE: "{{.HOME}}/.config/sops/age/keys.txt"
+
+tasks:
+  default:
+    cmds:
+      - task --list
+    silent: true
+
+  hooks:install:
+    desc: Install the git hooks
+    cmds:
+      - lefthook install
+
+  age:keygen:
+    desc: Create the age key outside the repo and print the public recipient
+    cmds:
+      - mkdir -p "$(dirname "$SOPS_AGE_KEY_FILE")"
+      - age-keygen -o "$SOPS_AGE_KEY_FILE"
+    status:
+      - test -f "$SOPS_AGE_KEY_FILE"
+
+  secret:new:
+    desc: "Create an encrypted Secret: task secret:new -- FILE NAME NAMESPACE|- KEY..."
+    cmds:
+      - scripts/secret-new.sh {{.CLI_ARGS}}
+
+  secrets:check:
+    desc: Reject plaintext Secrets and unencrypted *.sops.yaml in all tracked files
+    cmds:
+      - git ls-files -z -- '*.yaml' '*.yml' | xargs -0 scripts/check-secrets.sh
+      - gitleaks git --redact --no-banner

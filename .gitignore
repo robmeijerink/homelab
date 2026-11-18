@@ -1,0 +1,8 @@
+.DS_Store
+.env*
+*.agekey
+kubeconfig
+talosconfig
+talos/clusterconfig/
+.terraform/
+*.tfstate*

@@ -1,0 +1,8 @@
+pre-commit:
+  parallel: true
+  commands:
+    gitleaks:
+      run: gitleaks git --pre-commit --staged --redact --no-banner
+    secrets:
+      glob: "*.{yaml,yml}"
+      run: scripts/check-secrets.sh {staged_files}
