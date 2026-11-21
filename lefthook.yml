@@ -2,12 +2,12 @@ pre-commit:
   parallel: true
   commands:
     gitleaks:
-      run: gitleaks git --pre-commit --staged --redact --no-banner
+      run: mise exec -- gitleaks git --pre-commit --staged --redact --no-banner
     secrets:
       glob: "*.{yaml,yml}"
-      run: scripts/check-secrets.sh {staged_files}
+      run: mise exec -- scripts/check-secrets.sh {staged_files}
     hygiene:
       run: scripts/check-hygiene.sh {staged_files}
     tofu-fmt:
       glob: "*.tf"
-      run: tofu fmt -check {staged_files}
+      run: mise exec -- tofu fmt -check {staged_files}
