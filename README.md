@@ -1,28 +1,34 @@
 # homelab
 
-A single-cluster Kubernetes homelab run like a small production platform: Talos Linux,
-Flux, SOPS, backups to off-site object storage, and automated updates.
-Everything is declared in this repository. The goal is a full rebuild from git,
-backups and the offline secrets alone.
+A Kubernetes homelab run like a small production platform. Everything is declared in
+this repository: Flux applies `main`, secrets are encrypted with SOPS and Renovate keeps
+versions current. The goal is a full rebuild from git, backups and a few offline secrets.
 
-Build plan: [docs/SPEC.md](docs/SPEC.md). Decisions: [docs/adr](docs/adr).
-Hardware and accounts: [docs/inventory.md](docs/inventory.md).
+The first cluster runs on Oracle Cloud Always Free (OKE, two Ampere A1 workers). The
+configuration above the cluster is meant to move to Talos Linux on my own hardware later.
 
 ## Status
 
-| Phase | State |
+- CI is in place. `lint`, `validate` and `secrets` are required on every pull request,
+  and `main` is protected.
+- Renovate tracks the pinned tools, GitHub Actions and the OCI provider.
+- The OKE infrastructure is written in OpenTofu under `infra/` but not applied yet.
+- Flux, networking, storage, backups and monitoring are not built yet.
+
+## Layout
+
+| Path | Content |
 |---|---|
-| 0 Discovery and decisions | in progress |
-| 1 CI, protection, updates | not started |
-| 2 Nodes and cluster | not started |
-| 3 GitOps core | not started |
-| 4 Network, exposure, platform security | not started |
-| 5 Storage and backups | not started |
-| 6 Observability | not started |
-| 7 Applications | not started |
-| 9 Disaster recovery game day | not started |
+| `infra/` | OpenTofu for the OKE cluster |
+| `kubernetes/` | Flux and app manifests |
+| `bootstrap/` | What is applied outside Flux |
+| `talos/` | Talos configuration for the later bare-metal cluster |
+| `scripts/` | Checks that do not fit a task |
+| `.github/` | Workflows, Renovate config and the `main` ruleset |
 
 ## Getting started
+
+Requires [mise](https://mise.jdx.dev/).
 
 ```sh
 mise install

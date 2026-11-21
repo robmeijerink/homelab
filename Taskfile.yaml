@@ -78,7 +78,7 @@ tasks:
       - |
         if git ls-files --cached --others --exclude-standard -- '.github/workflows/*.y*ml' | grep -q .; then
           actionlint
-          zizmor --config .github/zizmor.yml .github
+          zizmor --config .github/zizmor.yml --persona pedantic --min-severity medium .github
         fi
 
   secrets:check:
