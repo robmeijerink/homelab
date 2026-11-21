@@ -38,6 +38,11 @@ tasks:
     cmds:
       - scripts/validate.sh
 
+  ci:test:
+    desc: Push throwaway PRs that must fail validate, secrets and lint, then close them
+    cmds:
+      - scripts/test-ci.sh
+
   hygiene:check:
     desc: Reject private addresses, identifiers and the domain in all files git would track
     cmds:
