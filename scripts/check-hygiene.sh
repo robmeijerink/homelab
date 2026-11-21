@@ -53,7 +53,7 @@ for f in "$@"; do
   ' "$f" || rc=1
 
   if [[ -f $deny_file ]]; then
-    hits=$(grep -nIE -f "$deny_file" "$f" | grep -v 'hygiene:allow' | cut -d: -f1 || true)
+    hits=$(grep -nIiE -f "$deny_file" "$f" | grep -v 'hygiene:allow' | cut -d: -f1 || true)
     for n in $hits; do
       echo "$f:$n: matches the private deny list" >&2
       rc=1

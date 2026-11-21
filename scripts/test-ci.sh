@@ -82,7 +82,7 @@ results=()
 rc=0
 
 run_case() {
-  local id=$1 check=$2
+  local id=$1 check=$2 reason=$3
   branch="test/$id"
 
   echo "== $id: expecting $check to fail"
@@ -110,9 +110,16 @@ run_case() {
     waited=$((waited + 15))
   done
 
-  local msg
+  local msg run_id
   if [[ $conclusion == FAILURE ]]; then
-    msg="$id: $check failed as expected"
+    run_id=$(gh run list --repo "$repo" --branch "$branch" --workflow "$check" --limit 1 \
+      --json databaseId --jq '.[0].databaseId')
+    if gh run view "$run_id" --repo "$repo" --log-failed | grep -qF "$reason"; then
+      msg="$id: $check failed as expected"
+    else
+      msg="$id: $check failed, but not with '$reason'"
+      rc=1
+    fi
   else
     msg="$id: expected $check to fail, got '${conclusion:-no result}'"
     rc=1
@@ -129,9 +136,9 @@ run_case() {
   git clean -fdq
 }
 
-run_case t1_1 validate
-run_case t1_2 secrets
-run_case t1_3 lint
+run_case t1_1 validate "is invalid"
+run_case t1_2 secrets "kind: Secret outside a *.sops.yaml file"
+run_case t1_3 lint "unpinned-uses"
 
 if gh issue list --repo "$repo" --search "Dependency Dashboard" --json title --jq '.[].title' | grep -q .; then
   results+=("t1_5: dependency dashboard issue exists")

@@ -10,6 +10,7 @@ while IFS= read -r -d '' file; do
   dir=$(dirname "$file")
   echo "validate $dir"
   if ! kustomize build "$dir" \
+    | yq 'del(.sops)' \
     | kubeconform -strict -summary -cache "$cache_dir" \
         -schema-location default -schema-location "$crd_schemas" -; then
     echo "FAILED: $dir" >&2
@@ -17,7 +18,7 @@ while IFS= read -r -d '' file; do
   fi
 done < <(find kubernetes -name kustomization.yaml -print0 | sort -z)
 
-if find kubernetes/flux -name '*.yaml' 2>/dev/null | grep -q .; then
+if [[ -n $(find kubernetes/flux -name '*.yaml' -print -quit 2>/dev/null) ]]; then
   flux-local test --enable-helm --all-namespaces --path kubernetes/flux || rc=1
 fi
 

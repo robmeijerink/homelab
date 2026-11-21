@@ -32,7 +32,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPOSITORY: ${{ github.repository }}
         run: |
-          if ! find pull/kubernetes/flux -name '*.yaml' | grep -q .; then
+          if [ -z "$(find pull/kubernetes/flux -name '*.yaml' -print -quit)" ]; then
             echo "No Flux manifests yet"
             exit 0
           fi
