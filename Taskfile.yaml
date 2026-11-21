@@ -1,7 +1,13 @@
 version: "3"
 
+dotenv: [".env"]
+
+vars:
+  TOFU_DIR: infra/oci-free
+
 env:
   SOPS_AGE_KEY_FILE: "{{.HOME}}/.config/sops/age/keys.txt"
+  KUBECONFIG: "{{.ROOT_DIR}}/kubeconfig"
 
 tasks:
   default:
@@ -27,8 +33,96 @@ tasks:
     cmds:
       - scripts/secret-new.sh {{.CLI_ARGS}}
 
+  validate:
+    desc: Build every Flux path, validate the schemas and run flux-local
+    cmds:
+      - scripts/validate.sh
+
+  hygiene:check:
+    desc: Reject private addresses, identifiers and the domain in all files git would track
+    cmds:
+      - git ls-files -z --cached --others --exclude-standard | xargs -0 -r scripts/check-hygiene.sh
+
+  lint:
+    desc: Run every linter on the files git would track
+    cmds:
+      - task: lint:tofu
+      - task: lint:yaml
+      - task: lint:shell
+      - task: lint:markdown
+      - task: lint:actions
+
+  lint:tofu:
+    cmds:
+      - tofu fmt -recursive -check infra
+
+  lint:yaml:
+    cmds:
+      - git ls-files -z --cached --others --exclude-standard -- '*.yaml' '*.yml' | xargs -0 -r yamllint --strict
+
+  lint:shell:
+    cmds:
+      - git ls-files -z --cached --others --exclude-standard -- '*.sh' | xargs -0 -r shellcheck
+
+  lint:markdown:
+    cmds:
+      - git ls-files -z --cached --others --exclude-standard -- '*.md' | xargs -0 -r markdownlint-cli2
+
+  lint:actions:
+    cmds:
+      - |
+        if git ls-files --cached --others --exclude-standard -- '.github/workflows/*.y*ml' | grep -q .; then
+          actionlint
+          zizmor --config .github/zizmor.yml .github
+        fi
+
   secrets:check:
     desc: Reject plaintext Secrets and unencrypted *.sops.yaml in all tracked files
     cmds:
       - git ls-files -z -- '*.yaml' '*.yml' | xargs -0 scripts/check-secrets.sh
       - gitleaks git --redact --no-banner
+
+  oci:state-bucket:
+    desc: "Create the versioned state bucket once: task oci:state-bucket -- COMPARTMENT_OCID"
+    cmds:
+      - oci os bucket create --name tofu-state --versioning Enabled --compartment-id {{.CLI_ARGS}}
+
+  oci:versions:
+    desc: List the Kubernetes versions OKE offers in the configured region
+    cmds:
+      - oci ce cluster-options get --cluster-option-id all --query 'data."kubernetes-versions"'
+
+  tofu:init:
+    desc: Initialise OpenTofu with the remote state backend
+    preconditions:
+      - sh: test -f {{.TOFU_DIR}}/backend.hcl
+        msg: "Copy {{.TOFU_DIR}}/backend.hcl.example to backend.hcl and fill it in"
+    cmds:
+      - tofu -chdir={{.TOFU_DIR}} init -backend-config=backend.hcl {{.CLI_ARGS}}
+
+  tofu:plan:
+    cmds:
+      - tofu -chdir={{.TOFU_DIR}} plan {{.CLI_ARGS}}
+
+  tofu:apply:
+    cmds:
+      - tofu -chdir={{.TOFU_DIR}} apply {{.CLI_ARGS}}
+
+  tofu:destroy:
+    cmds:
+      - tofu -chdir={{.TOFU_DIR}} destroy {{.CLI_ARGS}}
+
+  oci:kubeconfig:
+    desc: Write ./kubeconfig for the OKE cluster and name the context homelab
+    cmds:
+      - rm -f "$KUBECONFIG"
+      - >-
+        oci ce cluster create-kubeconfig
+        --cluster-id "$(tofu -chdir={{.TOFU_DIR}} output -raw cluster_id)"
+        --region "$(tofu -chdir={{.TOFU_DIR}} output -raw region)"
+        --file "$KUBECONFIG"
+        --token-version 2.0.0
+        --kube-endpoint PUBLIC_ENDPOINT
+      - chmod 600 "$KUBECONFIG"
+      - kubectl config rename-context "$(kubectl config current-context)" homelab
+      - kubectl --context homelab get nodes -o wide

@@ -6,3 +6,8 @@ pre-commit:
     secrets:
       glob: "*.{yaml,yml}"
       run: scripts/check-secrets.sh {staged_files}
+    hygiene:
+      run: scripts/check-hygiene.sh {staged_files}
+    tofu-fmt:
+      glob: "*.tf"
+      run: tofu fmt -check {staged_files}
