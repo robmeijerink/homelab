@@ -6,3 +6,5 @@ talosconfig
 talos/clusterconfig/
 .terraform/
 *.tfstate*
+infra/**/terraform.tfvars
+infra/**/backend.hcl

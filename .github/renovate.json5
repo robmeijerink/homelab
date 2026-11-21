@@ -1,0 +1,22 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["config:recommended", "helpers:pinGitHubActionDigests"],
+  timezone: "Europe/Amsterdam",
+  minimumReleaseAge: "3 days",
+  prConcurrentLimit: 5,
+  labels: ["dependencies"],
+  packageRules: [
+    {
+      matchUpdateTypes: ["major"],
+      dependencyDashboardApproval: true,
+    },
+    {
+      groupName: "flux",
+      matchPackageNames: ["/fluxcd/"],
+    },
+    {
+      groupName: "cilium",
+      matchPackageNames: ["/cilium/"],
+    },
+  ],
+}

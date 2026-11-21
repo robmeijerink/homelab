@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+crd_schemas='https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json'
+cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/kubeconform
+mkdir -p "$cache_dir"
+
+rc=0
+while IFS= read -r -d '' file; do
+  dir=$(dirname "$file")
+  echo "validate $dir"
+  if ! kustomize build "$dir" \
+    | kubeconform -strict -summary -cache "$cache_dir" \
+        -schema-location default -schema-location "$crd_schemas" -; then
+    echo "FAILED: $dir" >&2
+    rc=1
+  fi
+done < <(find kubernetes -name kustomization.yaml -print0 | sort -z)
+
+if find kubernetes/flux -name '*.yaml' 2>/dev/null | grep -q .; then
+  flux-local test --enable-helm --all-namespaces --path kubernetes/flux || rc=1
+fi
+
+for dir in infra/*/; do
+  [[ -f ${dir}main.tf ]] || continue
+  echo "validate $dir"
+  tofu -chdir="$dir" init -backend=false -input=false >/dev/null || rc=1
+  tofu -chdir="$dir" validate || rc=1
+done
+
+exit "$rc"

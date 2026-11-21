@@ -1,0 +1,44 @@
+name: flux-diff
+
+on:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  flux-diff:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: pull
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.base_ref }}
+          path: default
+          persist-credentials: false
+      - uses: jdx/mise-action@90f833d396d0cc3674b631d2d225e306476c303a # v5.2.10
+        with:
+          working_directory: pull
+      - name: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          if ! find pull/kubernetes/flux -name '*.yaml' | grep -q .; then
+            echo "No Flux manifests yet"
+            exit 0
+          fi
+          {
+            echo '### flux-local diff'
+            echo '```diff'
+            flux-local diff kustomization --path pull/kubernetes/flux --path-orig default/kubernetes/flux --all-namespaces || true
+            echo '```'
+          } > diff.md
+          gh pr comment "$PR_NUMBER" --repo "$REPOSITORY" --body-file diff.md --edit-last --create-if-none
