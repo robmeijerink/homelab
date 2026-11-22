@@ -48,6 +48,11 @@ tasks:
     cmds:
       - scripts/bootstrap-cilium.sh
 
+  bootstrap:flux:
+    desc: Install Flux Operator, the sops-age Secret and the FluxInstance
+    cmds:
+      - scripts/bootstrap-flux.sh
+
   hygiene:check:
     desc: Reject private addresses, identifiers and the domain in all files git would track
     cmds:
