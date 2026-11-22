@@ -22,6 +22,19 @@ if [[ -n $(find kubernetes/flux -name '*.yaml' -print -quit 2>/dev/null) ]]; the
   flux-local test --enable-helm --all-namespaces --path kubernetes/flux || rc=1
 fi
 
+for chart in bootstrap/*/Chart.yaml; do
+  [[ -f $chart ]] || continue
+  dir=$(dirname "$chart")
+  echo "validate $dir"
+  helm dependency build "$dir" >/dev/null || rc=1
+  if ! helm template "$dir" -f "$dir/values.yaml" --namespace kube-system \
+    | kubeconform -strict -summary -cache "$cache_dir" \
+        -schema-location default -schema-location "$crd_schemas" -; then
+    echo "FAILED: $dir" >&2
+    rc=1
+  fi
+done
+
 for dir in infra/*/; do
   [[ -f ${dir}main.tf ]] || continue
   echo "validate $dir"
