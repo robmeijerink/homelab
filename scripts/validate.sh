@@ -19,7 +19,7 @@ while IFS= read -r -d '' file; do
 done < <(find kubernetes -name kustomization.yaml -print0 | sort -z)
 
 if [[ -n $(find kubernetes/flux -name '*.yaml' -print -quit 2>/dev/null) ]]; then
-  flux-local test --enable-helm --all-namespaces --path kubernetes/flux || rc=1
+  flate test --path kubernetes/flux || rc=1
 fi
 
 for chart in bootstrap/*/Chart.yaml; do
