@@ -43,6 +43,11 @@ tasks:
     cmds:
       - scripts/test-ci.sh
 
+  bootstrap:cilium:
+    desc: Install Cilium and replace flannel on a fresh OKE cluster
+    cmds:
+      - scripts/bootstrap-cilium.sh
+
   hygiene:check:
     desc: Reject private addresses, identifiers and the domain in all files git would track
     cmds:

@@ -8,3 +8,4 @@ talos/clusterconfig/
 *.tfstate*
 infra/**/terraform.tfvars
 infra/**/backend.hcl
+bootstrap/*/charts/
