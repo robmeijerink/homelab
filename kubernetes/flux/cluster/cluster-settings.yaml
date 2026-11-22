@@ -5,3 +5,4 @@ metadata:
   namespace: flux-system
 data:
   TIMEZONE: Europe/Amsterdam
+  CLUSTER_NAME: homelab
