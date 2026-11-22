@@ -11,8 +11,9 @@ configuration above the cluster is meant to move to Talos Linux on my own hardwa
 
 - CI is in place. `lint`, `validate` and `secrets` are required on every pull request,
   and `main` is protected.
-- Renovate tracks the pinned tools, GitHub Actions and the OCI provider.
-- The OKE infrastructure is written in OpenTofu under `infra/` but not applied yet.
+- Renovate tracks the pinned tools, GitHub Actions, the OCI provider and the Cilium chart.
+- The OKE cluster is built from `infra/` with OpenTofu, and Cilium replaces flannel through
+  `task bootstrap:cilium`. A rebuild from scratch takes about half an hour.
 - Flux, networking, storage, backups and monitoring are not built yet.
 
 ## Layout
@@ -20,10 +21,10 @@ configuration above the cluster is meant to move to Talos Linux on my own hardwa
 | Path | Content |
 |---|---|
 | `infra/` | OpenTofu for the OKE cluster |
+| `bootstrap/` | What is applied outside Flux: Cilium |
 | `kubernetes/` | Flux and app manifests |
-| `bootstrap/` | What is applied outside Flux |
 | `talos/` | Talos configuration for the later bare-metal cluster |
-| `scripts/` | Checks that do not fit a task |
+| `scripts/` | Checks and bootstrap steps that do not fit a task |
 | `.github/` | Workflows, Renovate config and the `main` ruleset |
 
 ## Getting started
@@ -31,7 +32,7 @@ configuration above the cluster is meant to move to Talos Linux on my own hardwa
 Requires [mise](https://mise.jdx.dev/).
 
 ```sh
-mise install
+mise trust && mise install
 task hooks:install
 task --list
 ```

@@ -3,7 +3,7 @@ output "cluster_id" {
 }
 
 output "node_image_name" {
-  value = local.node_image_name
+  value = var.node_image_name
 }
 
 output "available_kubernetes_versions" {

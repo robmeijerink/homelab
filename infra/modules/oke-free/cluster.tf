@@ -8,16 +8,8 @@ data "oci_containerengine_node_pool_option" "all" {
 }
 
 locals {
-  image_names = sort([
-    for s in data.oci_containerengine_node_pool_option.all.sources : s.source_name
-    if strcontains(s.source_name, "aarch64")
-    && strcontains(s.source_name, "-OKE-${trimprefix(var.kubernetes_version, "v")}-")
-    && !strcontains(s.source_name, "GPU")
-    && !strcontains(s.source_name, "FIPS")
-  ])
-  image_ids       = { for s in data.oci_containerengine_node_pool_option.all.sources : s.source_name => s.image_id }
-  node_image_name = var.node_image_id != null ? "custom" : try(local.image_names[length(local.image_names) - 1], "")
-  node_image_id   = var.node_image_id != null ? var.node_image_id : lookup(local.image_ids, local.node_image_name, "")
+  image_ids     = { for s in data.oci_containerengine_node_pool_option.all.sources : s.source_name => s.image_id }
+  node_image_id = lookup(local.image_ids, var.node_image_name, "")
 
   free_ocpus  = 2
   free_memory = 12
@@ -94,11 +86,14 @@ resource "oci_containerengine_node_pool" "a1" {
   }
 
   lifecycle {
-    ignore_changes = [node_source_details[0].image_id]
-
     precondition {
       condition     = local.node_image_id != ""
-      error_message = "No aarch64 OKE image found for ${var.kubernetes_version}. Set node_image_id or pick another version."
+      error_message = "Image ${var.node_image_name} is not offered for this cluster. List the available ones with task oci:images."
+    }
+
+    precondition {
+      condition     = strcontains(var.node_image_name, "-OKE-${trimprefix(var.kubernetes_version, "v")}-")
+      error_message = "Image ${var.node_image_name} does not match kubernetes_version ${var.kubernetes_version}."
     }
 
     precondition {

@@ -65,10 +65,9 @@ variable "kubernetes_version" {
   }
 }
 
-variable "node_image_id" {
-  description = "Worker image OCID. Null picks the newest aarch64 OKE image for kubernetes_version."
+variable "node_image_name" {
+  description = "Exact OKE worker image name, for example Oracle-Linux-9.8-aarch64-2026.10.16-0-OKE-1.37.1-2067. List them with task oci:images."
   type        = string
-  default     = null
 }
 
 variable "node_count" {
