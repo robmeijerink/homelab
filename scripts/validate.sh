@@ -18,9 +18,7 @@ while IFS= read -r -d '' file; do
   fi
 done < <(find kubernetes -name kustomization.yaml -print0 | sort -z)
 
-if [[ -n $(find kubernetes/flux -name '*.yaml' -print -quit 2>/dev/null) ]]; then
-  flate test --path kubernetes/flux || rc=1
-fi
+flate test --path kubernetes/flux || rc=1
 
 for chart in bootstrap/*/Chart.yaml; do
   [[ -f $chart ]] || continue

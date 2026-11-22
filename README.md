@@ -11,17 +11,20 @@ configuration above the cluster is meant to move to Talos Linux on my own hardwa
 
 - CI is in place. `lint`, `validate` and `secrets` are required on every pull request,
   and `main` is protected.
-- Renovate tracks the pinned tools, GitHub Actions, the OCI provider and the Cilium chart.
+- Renovate tracks the pinned tools, GitHub Actions, the OCI provider, the Cilium chart and
+  the Flux Operator and Flux versions.
 - The OKE cluster is built from `infra/` with OpenTofu, and Cilium replaces flannel through
   `task bootstrap:cilium`. A rebuild from scratch takes about half an hour.
-- Flux, networking, storage, backups and monitoring are not built yet.
+- Flux Operator syncs `main` and manages itself. SOPS decryption is in place; the repository is
+  public, so Flux needs no credentials.
+- Networking, storage, backups and monitoring are not built yet.
 
 ## Layout
 
 | Path | Content |
 |---|---|
 | `infra/` | OpenTofu for the OKE cluster |
-| `bootstrap/` | What is applied outside Flux: Cilium |
+| `bootstrap/` | What is applied outside Flux: Cilium and the Flux Operator |
 | `kubernetes/` | Flux and app manifests |
 | `talos/` | Talos configuration for the later bare-metal cluster |
 | `scripts/` | Checks and bootstrap steps that do not fit a task |
