@@ -102,6 +102,26 @@ tasks:
     cmds:
       - oci ce cluster-options get --cluster-option-id all --query 'data."kubernetes-versions"'
 
+  oci:images:
+    desc: List the aarch64 OKE worker images for the pinned Kubernetes version
+    cmds:
+      - >-
+        v=$(awk -F'"' '/^kubernetes_version/{print $2}' {{.TOFU_DIR}}/kubernetes.auto.tfvars);
+        oci ce node-pool-options get --node-pool-option-id all
+        --query "data.sources[?contains(\"source-name\", 'aarch64') && contains(\"source-name\", 'OKE-${v#v}-')
+        && !contains(\"source-name\", 'GPU') && !contains(\"source-name\", 'FIPS')].\"source-name\""
+
+  oci:allow-my-ip:
+    desc: Put my current public IP in api_allowed_cidrs and show the plan
+    cmds:
+      - >-
+        ip=$(curl -fsS https://ifconfig.me);
+        awk -v ip="$ip" '/^api_allowed_cidrs/{print "api_allowed_cidrs = [\"" ip "/32\"]"; next} {print}'
+        {{.TOFU_DIR}}/terraform.tfvars > {{.TOFU_DIR}}/terraform.tfvars.tmp
+        && mv {{.TOFU_DIR}}/terraform.tfvars.tmp {{.TOFU_DIR}}/terraform.tfvars
+      - tofu fmt {{.TOFU_DIR}}/terraform.tfvars
+      - tofu -chdir={{.TOFU_DIR}} plan
+
   tofu:init:
     desc: Initialise OpenTofu with the remote state backend
     preconditions:
@@ -111,14 +131,17 @@ tasks:
       - tofu -chdir={{.TOFU_DIR}} init -backend-config=backend.hcl {{.CLI_ARGS}}
 
   tofu:plan:
+    desc: Plan the OKE infrastructure
     cmds:
       - tofu -chdir={{.TOFU_DIR}} plan {{.CLI_ARGS}}
 
   tofu:apply:
+    desc: Apply the OKE infrastructure
     cmds:
       - tofu -chdir={{.TOFU_DIR}} apply {{.CLI_ARGS}}
 
   tofu:destroy:
+    desc: Destroy the OKE infrastructure
     cmds:
       - tofu -chdir={{.TOFU_DIR}} destroy {{.CLI_ARGS}}
 

@@ -31,6 +31,10 @@ variable "kubernetes_version" {
   type = string
 }
 
+variable "node_image_name" {
+  type = string
+}
+
 variable "ssh_public_key" {
   type    = string
   default = null

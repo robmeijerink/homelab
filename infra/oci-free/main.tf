@@ -11,5 +11,6 @@ module "oke" {
   name               = var.name
   api_allowed_cidrs  = var.api_allowed_cidrs
   kubernetes_version = var.kubernetes_version
+  node_image_name    = var.node_image_name
   ssh_public_key     = var.ssh_public_key
 }
