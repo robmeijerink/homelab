@@ -34,7 +34,7 @@ tasks:
       - scripts/secret-new.sh {{.CLI_ARGS}}
 
   validate:
-    desc: Build every Flux path, validate the schemas and run flux-local
+    desc: Build every Flux path, validate the schemas and run flate
     cmds:
       - scripts/validate.sh
 
