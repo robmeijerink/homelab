@@ -5,6 +5,16 @@
   minimumReleaseAge: "3 days",
   prConcurrentLimit: 5,
   labels: ["dependencies"],
+  customManagers: [
+    {
+      customType: "regex",
+      managerFilePatterns: ["/^kubernetes/flux/instance/flux-instance\\.yaml$/"],
+      matchStrings: ["version: (?<currentValue>\\S+)\\n\\s+registry: ghcr\\.io/fluxcd"],
+      datasourceTemplate: "github-releases",
+      depNameTemplate: "fluxcd/flux2",
+      extractVersionTemplate: "^v(?<version>.*)$",
+    },
+  ],
   packageRules: [
     {
       matchUpdateTypes: ["major"],

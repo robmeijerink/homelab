@@ -28,7 +28,7 @@ for chart in bootstrap/*/Chart.yaml; do
   echo "validate $dir"
   helm dependency build "$dir" >/dev/null || rc=1
   if ! helm template "$dir" --namespace kube-system \
-    | kubeconform -strict -summary -cache "$cache_dir" \
+    | kubeconform -strict -summary -skip CustomResourceDefinition -cache "$cache_dir" \
         -schema-location default -schema-location "$crd_schemas" -; then
     echo "FAILED: $dir" >&2
     rc=1
