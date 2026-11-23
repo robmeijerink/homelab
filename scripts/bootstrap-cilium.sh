@@ -15,7 +15,7 @@ unmanaged() {
 }
 
 helm dependency build "$dir"
-helm upgrade --install cilium "$dir" --namespace kube-system --kube-context "$context"
+helm upgrade --install cilium "$dir" --namespace kube-system --kube-context "$context" --reset-values
 k -n kube-system rollout status daemonset/cilium --timeout=10m
 
 cluster_id=$(tofu -chdir=infra/oci-free output -raw cluster_id)
