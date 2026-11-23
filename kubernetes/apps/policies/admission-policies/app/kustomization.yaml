@@ -5,3 +5,4 @@ resources:
   - workload-probes.yaml
   - workload-security.yaml
   - cost-guardrails.yaml
+  - block-flannel.yaml
