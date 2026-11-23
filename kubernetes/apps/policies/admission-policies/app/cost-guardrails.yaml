@@ -1,0 +1,39 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: cost-guardrails
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["persistentvolumeclaims"]
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["services"]
+  validations:
+    - expression: >-
+        object.kind != 'PersistentVolumeClaim' || !has(object.spec.storageClassName) ||
+        !(object.spec.storageClassName in ['oci', 'oci-bv'])
+      message: "PersistentVolumeClaims must not use the paid OKE storage classes"
+    - expression: >-
+        object.kind != 'Service' || object.spec.type != 'LoadBalancer' ||
+        (has(object.spec.loadBalancerClass) && object.spec.loadBalancerClass == 'tailscale')
+      message: "Services of type LoadBalancer need loadBalancerClass tailscale"
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: cost-guardrails
+spec:
+  policyName: cost-guardrails
+  validationActions: [Audit, Warn]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+        - key: pod-security.kubernetes.io/enforce
+          operator: NotIn
+          values: ["privileged"]
