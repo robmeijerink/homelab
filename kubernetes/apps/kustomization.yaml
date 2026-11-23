@@ -4,3 +4,4 @@ resources:
   - flux-system
   - metrics-server
   - local-path-storage
+  - namespaces
