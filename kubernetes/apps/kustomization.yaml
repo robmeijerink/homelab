@@ -5,3 +5,4 @@ resources:
   - metrics-server
   - local-path-storage
   - namespaces
+  - policies
