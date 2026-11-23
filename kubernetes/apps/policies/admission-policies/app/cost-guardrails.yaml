@@ -1,7 +1,7 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicy
 metadata:
-  name: cost-guardrails
+  name: pvc-storage-class
 spec:
   failurePolicy: Fail
   matchConstraints:
@@ -10,27 +10,49 @@ spec:
         apiVersions: ["v1"]
         operations: ["CREATE", "UPDATE"]
         resources: ["persistentvolumeclaims"]
+  validations:
+    - expression: >-
+        !has(object.spec.storageClassName) || !(object.spec.storageClassName in ['oci', 'oci-bv'])
+      message: "PersistentVolumeClaims must not use the paid OKE storage classes"
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: pvc-storage-class
+spec:
+  policyName: pvc-storage-class
+  validationActions: [Deny, Audit]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+        - key: pod-security.kubernetes.io/enforce
+          operator: NotIn
+          values: ["privileged"]
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: service-load-balancer
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
       - apiGroups: [""]
         apiVersions: ["v1"]
         operations: ["CREATE", "UPDATE"]
         resources: ["services"]
   validations:
     - expression: >-
-        object.kind != 'PersistentVolumeClaim' || !has(object.spec.storageClassName) ||
-        !(object.spec.storageClassName in ['oci', 'oci-bv'])
-      message: "PersistentVolumeClaims must not use the paid OKE storage classes"
-    - expression: >-
-        object.kind != 'Service' || object.spec.type != 'LoadBalancer' ||
-        (has(object.spec.loadBalancerClass) && object.spec.loadBalancerClass == 'tailscale')
+        object.spec.type != 'LoadBalancer' || (has(object.spec.loadBalancerClass) && object.spec.loadBalancerClass == 'tailscale')
       message: "Services of type LoadBalancer need loadBalancerClass tailscale"
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicyBinding
 metadata:
-  name: cost-guardrails
+  name: service-load-balancer
 spec:
-  policyName: cost-guardrails
-  validationActions: [Audit, Warn]
+  policyName: service-load-balancer
+  validationActions: [Deny, Audit]
   matchResources:
     namespaceSelector:
       matchExpressions:

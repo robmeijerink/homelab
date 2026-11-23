@@ -43,7 +43,7 @@ metadata:
   name: workload-hygiene
 spec:
   policyName: workload-hygiene
-  validationActions: [Audit, Warn]
+  validationActions: [Deny, Audit]
   matchResources:
     namespaceSelector:
       matchExpressions:
