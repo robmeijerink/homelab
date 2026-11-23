@@ -150,6 +150,14 @@ tasks:
     cmds:
       - tofu -chdir={{.TOFU_DIR}} destroy {{.CLI_ARGS}}
 
+  oci:status:
+    desc: Show the state of the OKE cluster
+    cmds:
+      - >-
+        oci ce cluster get
+        --cluster-id "$(tofu -chdir={{.TOFU_DIR}} output -raw cluster_id)"
+        --query 'data.{state:"lifecycle-state",details:"lifecycle-details",type:type,version:"kubernetes-version"}'
+
   oci:kubeconfig:
     desc: Write ./kubeconfig for the OKE cluster and name the context homelab
     cmds:
