@@ -1,0 +1,15 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: metrics-server
+  namespace: flux-system
+spec:
+  interval: 30m
+  path: ./kubernetes/apps/metrics-server/metrics-server/app
+  prune: true
+  wait: true
+  timeout: 5m
+  targetNamespace: metrics-server
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
