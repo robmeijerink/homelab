@@ -48,7 +48,7 @@ metadata:
   name: workload-security
 spec:
   policyName: workload-security
-  validationActions: [Audit, Warn]
+  validationActions: [Deny, Audit]
   matchResources:
     namespaceSelector:
       matchExpressions:
