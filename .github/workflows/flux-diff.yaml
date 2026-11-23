@@ -27,14 +27,10 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           BASE_REF: ${{ github.base_ref }}
         run: |
-          if [ -z "$(find kubernetes/flux -name '*.yaml' -print -quit)" ]; then
-            echo "No Flux manifests yet"
-            exit 0
-          fi
           {
             echo '### flate diff'
             echo '```diff'
-            flate diff all --path kubernetes/flux --base "origin/$BASE_REF" --output diff || true
+            flate diff all --path kubernetes/flux --base "origin/$BASE_REF" --output diff 2>&1 || true
             echo '```'
           } > diff.md
           gh pr comment "$PR_NUMBER" --repo "$REPOSITORY" --body-file diff.md --edit-last --create-if-none
