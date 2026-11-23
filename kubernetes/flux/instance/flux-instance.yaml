@@ -25,6 +25,40 @@ spec:
   kustomize:
     patches:
       - target:
+          kind: Deployment
+          name: (source-controller|helm-controller|notification-controller)
+        patch: |
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: not-used
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: manager
+                    resources:
+                      requests:
+                        cpu: 10m
+                        memory: 64Mi
+      - target:
+          kind: Deployment
+          name: kustomize-controller
+        patch: |
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: not-used
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: manager
+                    resources:
+                      requests:
+                        cpu: 20m
+                        memory: 128Mi
+      - target:
           kind: Kustomization
         patch: |
           - op: add

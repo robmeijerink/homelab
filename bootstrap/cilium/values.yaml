@@ -8,18 +8,18 @@ cilium:
     exclusive: true
   resources:
     requests:
-      cpu: 100m
-      memory: 200Mi
+      cpu: 25m
+      memory: 256Mi
   operator:
     replicas: 1
     resources:
       requests:
-        cpu: 50m
+        cpu: 10m
         memory: 64Mi
   hubble:
     relay:
       enabled: true
       resources:
         requests:
-          cpu: 20m
+          cpu: 10m
           memory: 32Mi
